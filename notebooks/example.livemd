@@ -1,0 +1,380 @@
+# KinoLiveViewNative
+
+```elixir
+Mix.install(
+  [
+    # {:kino_live_view_native, path: "apps/kino_live_view_native"},
+    # {:kino_live_view_native_web, path: "apps/kino_live_view_native_web"}
+    {:kino_live_view_native_umbrella, path: "./"}
+  ],
+  # [{:kino_live_view_native,  "~> 0.2.2"}],
+  config: [
+    kino_live_view_native: [
+      {KinoLiveViewNativeWeb.Endpoint,
+       [
+         server: true,
+         url: [host: "localhost"],
+         adapter: Phoenix.Endpoint.Cowboy2Adapter,
+         render_errors: [
+           formats: [html: KinoLiveViewNativeWeb.ErrorHTML, json: KinoLiveViewNativeWeb.ErrorJSON],
+           layout: false
+         ],
+         pubsub_server: KinoLiveViewNative.PubSub,
+         live_view: [signing_salt: "JSgdVVL6"],
+         http: [ip: {127, 0, 0, 1}, port: 4000],
+         secret_key_base: String.duplicate("a", 64),
+         live_reload: [
+           patterns: [
+             ~r/#{__ENV__.file |> String.split("#") |> hd()}$/
+           ]
+         ]
+       ]}
+    ],
+    kino: [
+      group_leader: Process.group_leader()
+    ],
+    phoenix: [
+      template_engines: [neex: LiveViewNative.Engine]
+    ],
+    phoenix_template: [format_encoders: [swiftui: Phoenix.HTML.Engine]],
+    mime: [
+      types: %{"text/swiftui" => ["swiftui"], "text/styles" => ["styles"]}
+    ],
+    live_view_native: [plugins: [LiveViewNative.SwiftUI]],
+    live_view_native_stylesheet: [
+      content: [
+        swiftui: [
+          "lib/**/*swiftui*",
+          "notebooks/example.livemd"
+        ]
+      ],
+      output: "priv/static/assets"
+    ]
+  ],
+  force: true
+)
+```
+
+## Quickstart
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIEtpbm9MaXZlVmlld05hdGl2ZVdlYi5Ib21lTGl2ZS5Td2lmdFVJIGRvXG4gIHVzZSBMaXZlVmlld05hdGl2ZS5Db21wb25lbnQsXG4gICAgZm9ybWF0OiA6c3dpZnR1aVxuXG4gIGRlZiByZW5kZXIoYXNzaWducywgX2ludGVyZmFjZSkgZG9cbiAgICB+TFZOXCJcIlwiXG4gICAgPFRleHQgY2xhc3M9XCJjb2xvci1ibHVlXCI+SGVsbG8sIGZyb20gTGl2ZVZpZXcgTmF0aXZlITwvVGV4dD5cbiAgICBcIlwiXCJcbiAgZW5kXG5lbmRcblxuZGVmbW9kdWxlIEtpbm9MaXZlVmlld05hdGl2ZVdlYi5Ib21lTGl2ZSBkb1xuICB1c2UgS2lub0xpdmVWaWV3TmF0aXZlV2ViLCA6bGl2ZV92aWV3XG5cbiAgdXNlIExpdmVWaWV3TmF0aXZlLkxpdmVWaWV3LFxuICAgIGZvcm1hdHM6IFs6c3dpZnR1aV0sXG4gICAgbGF5b3V0czogW1xuICAgICAgc3dpZnR1aToge0tpbm9MaXZlVmlld05hdGl2ZVdlYi5MYXlvdXRzLlN3aWZ0VUksIDphcHB9XG4gICAgXVxuXG4gIEBpbXBsIHRydWVcbiAgZGVmIHJlbmRlcihhc3NpZ25zKSBkb1xuICAgIH5IXCJcIlwiXG4gICAgPHA+SGVsbG8gZnJvbSBMaXZlVmlldyE8L3A+XG4gICAgXCJcIlwiXG4gIGVuZFxuZW5kIiwicGF0aCI6Ii8ifQ","chunks":[[0,109],[111,560],[673,71],[746,63]],"kind":"Elixir.KinoLiveViewNative.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require KinoLiveViewNative.Livebook
+import KinoLiveViewNative.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule KinoLiveViewNativeWeb.HomeLive.SwiftUI do
+  use LiveViewNative.Component,
+    format: :swiftui
+
+  def render(assigns, _interface) do
+    ~LVN"""
+    <Text class="color-blue">Hello, from LiveView Native!</Text>
+    """
+  end
+end
+
+defmodule KinoLiveViewNativeWeb.HomeLive do
+  use KinoLiveViewNativeWeb, :live_view
+
+  use LiveViewNative.LiveView,
+    formats: [:swiftui],
+    layouts: [
+      swiftui: {KinoLiveViewNativeWeb.Layouts.SwiftUI, :app}
+    ]
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <p>Hello from LiveView!</p>
+    """
+  end
+end
+|> KinoLiveViewNative.SmartCells.LiveViewNative.register("/", ":index")
+
+import KinoLiveViewNative.Livebook, only: []
+import Kernel
+:ok
+```
+
+To use the KinoLiveViewNative project we need to install it. You can include the following in your Notebook dependencies and setup section of Livebook.
+
+<!-- livebook:{"force_markdown":true} -->
+
+```elixir
+Mix.install(
+  [{:kino_live_view_native, path: "./"}],
+  # [{:kino_live_view_native,  "~> 0.2.2"}],
+  config: [
+    kino_live_view_native: [
+      {ServerWeb.Endpoint,
+       [
+         server: true,
+         url: [host: "localhost"],
+         adapter: Phoenix.Endpoint.Cowboy2Adapter,
+         render_errors: [
+           formats: [html: ServerWeb.ErrorHTML, json: ServerWeb.ErrorJSON],
+           layout: false
+         ],
+         pubsub_server: Server.PubSub,
+         live_view: [signing_salt: "JSgdVVL6"],
+         http: [ip: {127, 0, 0, 1}, port: 4000],
+         secret_key_base: String.duplicate("a", 64),
+         live_reload: [
+           patterns: [
+             ~r/#{__ENV__.file |> String.split("#") |> hd()}$/
+           ]
+         ]
+       ]}
+    ],
+    kino: [
+      group_leader: Process.group_leader()
+    ],
+    phoenix: [
+      template_engines: [neex: LiveViewNative.Engine]
+    ],
+    phoenix_template: [format_encoders: [swiftui: Phoenix.HTML.Engine]],
+    mime: [
+      types: %{"text/swiftui" => ["swiftui"]}
+    ],
+    live_view_native: [plugins: [LiveViewNative.SwiftUI]],
+    live_view_native_stylesheet: [parsers: [swiftui: LiveViewNative.SwiftUI.RulesParser]]
+  ],
+  force: true
+)
+```
+
+By default, the server starts on port `4000`. You could change the configuration if you wish.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Basic LiveView Native Example
+
+Let's create a basic LiveView that will be available at http://localhost:4000. You can also inspect the native template code at http://localhost:4000/?_lvn[format]=swiftui
+
+First, we define the LiveView in our `"LiveView Native"` smart cell.
+
+```elixir
+File.ls!()
+```
+
+```elixir
+ServerWeb.Styles.App.SwiftUI.__native_opts__()
+```
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIFNlcnZlcldlYi5Ib21lTGl2ZS5Td2lmdFVJIGRvXG4gIHVzZSBMaXZlVmlld05hdGl2ZS5Db21wb25lbnQsXG4gICAgZm9ybWF0OiA6c3dpZnR1aVxuXG4gIGRlZiByZW5kZXIoYXNzaWducywgX2ludGVyZmFjZSkgZG9cbiAgICB+TFZOXCJcIlwiXG4gICAgPFRleHQgY2xhc3M9XCJjb2xvci1ibHVlXCI+SGVsbG8sIGZyb20gTGl2ZVZpZXcgTmF0aXZlITwvVGV4dD5cbiAgICBcIlwiXCJcbiAgZW5kXG5lbmRcblxuZGVmbW9kdWxlIFNlcnZlcldlYi5Ib21lTGl2ZSBkb1xuICB1c2UgU2VydmVyV2ViLCA6bGl2ZV92aWV3XG4gIHVzZSBMaXZlVmlld05hdGl2ZS5MaXZlVmlldyxcbiAgICBmb3JtYXRzOiBbOnN3aWZ0dWldLFxuICAgIGxheW91dHM6IFtcbiAgICAgIHN3aWZ0dWk6IHtTZXJ2ZXJXZWIuTGF5b3V0cy5Td2lmdFVJLCA6YXBwfVxuICAgIF1cblxuICBAaW1wbCB0cnVlXG4gIGRlZiByZW5kZXIoYXNzaWducykgZG9cbiAgICB+SFwiXCJcIlxuICAgIDxwPkhlbGxvIGZyb20gTGl2ZVZpZXchPC9wPlxuICAgIFwiXCJcIlxuICBlbmRcbmVuZCIsInBhdGgiOiIvIn0","chunks":[[0,85],[87,511],[600,59],[661,51]],"kind":"Elixir.Server.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require Server.Livebook
+import Server.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule ServerWeb.HomeLive.SwiftUI do
+  use LiveViewNative.Component,
+    format: :swiftui
+
+  def render(assigns, _interface) do
+    ~LVN"""
+    <Text class="color-blue">Hello, from LiveView Native!</Text>
+    """
+  end
+end
+
+defmodule ServerWeb.HomeLive do
+  use ServerWeb, :live_view
+
+  use LiveViewNative.LiveView,
+    formats: [:swiftui],
+    layouts: [
+      swiftui: {ServerWeb.Layouts.SwiftUI, :app}
+    ]
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <p>Hello from LiveView!</p>
+    """
+  end
+end
+|> Server.SmartCells.LiveViewNative.register("/", ":index")
+
+import Server.Livebook, only: []
+import Kernel
+:ok
+```
+
+The last module in the code cell **must** be the LiveView, not the SwiftUI render component.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Live Reloading
+
+`KinoLiveViewNative` uses automatic code reloading, so anytime you change this file or evaluate one of the `LiveView Native` smart cells, the server will hot reload the page.
+
+Evaluate the cell below that changes the text, and you should see the application reload in your simulator.
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIFNlcnZlcldlYi5Ib21lTGl2ZS5Td2lmdFVJIGRvXG4gIHVzZSBMaXZlVmlld05hdGl2ZS5Db21wb25lbnQsXG4gICAgZm9ybWF0OiA6c3dpZnR1aVxuXG4gIGRlZiByZW5kZXIoYXNzaWducywgX2ludGVyZmFjZSkgZG9cbiAgICB+TFZOXCJcIlwiXG4gICAgPFRleHQ+SGVsbG8sIExpdmUgUmVsb2FkITwvVGV4dD5cbiAgICBcIlwiXCJcbiAgZW5kXG5lbmRcblxuZGVmbW9kdWxlIFNlcnZlcldlYi5Ib21lTGl2ZSBkb1xuICB1c2UgU2VydmVyV2ViLCA6bGl2ZV92aWV3XG4gIHVzZSBMaXZlVmlld05hdGl2ZS5MaXZlVmlldyxcbiAgICBmb3JtYXRzOiBbOnN3aWZ0dWldLFxuICAgIGxheW91dHM6IFtcbiAgICAgIHN3aWZ0dWk6IHtTZXJ2ZXJXZWIuTGF5b3V0cy5Td2lmdFVJLCA6YXBwfVxuICAgIF1cblxuICBAaW1wbCB0cnVlXG4gIGRlZiByZW5kZXIoYXNzaWducykgZG9cbiAgICB+SFwiXCJcIlxuICAgIDxwPkhlbGxvIExpdmUgUmVsb2FkITwvcD5cbiAgICBcIlwiXCJcbiAgZW5kXG5lbmQiLCJwYXRoIjoiLyJ9","chunks":[[0,85],[87,481],[570,59],[631,51]],"kind":"Elixir.Server.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require Server.Livebook
+import Server.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule ServerWeb.HomeLive.SwiftUI do
+  use LiveViewNative.Component,
+    format: :swiftui
+
+  def render(assigns, _interface) do
+    ~LVN"""
+    <Text>Hello, Live Reload!</Text>
+    """
+  end
+end
+
+defmodule ServerWeb.HomeLive do
+  use ServerWeb, :live_view
+
+  use LiveViewNative.LiveView,
+    formats: [:swiftui],
+    layouts: [
+      swiftui: {ServerWeb.Layouts.SwiftUI, :app}
+    ]
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <p>Hello Live Reload!</p>
+    """
+  end
+end
+|> Server.SmartCells.LiveViewNative.register("/", ":index")
+
+import Server.Livebook, only: []
+import Kernel
+:ok
+```
+
+## Asset Paths
+
+Asset paths are relative to the host URL. We have provided an example image at http://localhost:4000/images/logo.png for you to use in any examples.
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIFNlcnZlcldlYi5FeGFtcGxlTGl2ZSBkb1xuICB1c2UgU2VydmVyV2ViLCA6bGl2ZV92aWV3XG5cbiAgQGltcGwgdHJ1ZVxuICBkZWYgcmVuZGVyKCV7Zm9ybWF0OiA6c3dpZnR1aX0gPSBhc3NpZ25zKSBkb1xuICAgIH5TV0lGVFVJXCJcIlwiXG4gICAgPEFzeW5jSW1hZ2UgdXJsPVwiL2ltYWdlcy9sb2dvLnBuZ1wiLz5cbiAgICBcIlwiXCJcbiAgZW5kXG5lbmQiLCJwYXRoIjoiLyJ9","chunks":[[0,85],[87,198],[287,59],[348,51]],"kind":"Elixir.Server.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require Server.Livebook
+import Server.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule ServerWeb.ExampleLive do
+  use ServerWeb, :live_view
+
+  @impl true
+  def render(%{format: :swiftui} = assigns) do
+    ~SWIFTUI"""
+    <AsyncImage url="/images/logo.png"/>
+    """
+  end
+end
+|> Server.SmartCells.LiveViewNative.register("/", ":index")
+
+import Server.Livebook, only: []
+import Kernel
+:ok
+```
+
+## Core Components
+
+Core components are supported.
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIFNlcnZlcldlYi5FeGFtcGxlTGl2ZSBkb1xuICB1c2UgU2VydmVyV2ViLCA6bGl2ZV92aWV3XG5cbiAgZGVmIHJlbmRlcihhc3NpZ25zKSBkb1xuICAgIH5IXCJcIlwiXG4gICAgPC5idXR0b24+Q2xpY2s8Ly5idXR0b24+XG4gICAgXCJcIlwiXG4gIGVuZFxuZW5kIiwicGF0aCI6Ii8ifQ","chunks":[[0,85],[87,145],[234,59],[295,51]],"kind":"Elixir.Server.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require Server.Livebook
+import Server.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule ServerWeb.ExampleLive do
+  use ServerWeb, :live_view
+
+  def render(assigns) do
+    ~H"""
+    <.button>Click</.button>
+    """
+  end
+end
+|> Server.SmartCells.LiveViewNative.register("/", ":index")
+
+import Server.Livebook, only: []
+import Kernel
+:ok
+```
+
+## Tailwind
+
+While tailwind is included in the project, it is not currently functional.
+
+Tailwind does static analysis to find classes used in the project, and therefore does not find classes defined within Livebook files.
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIFNlcnZlcldlYi5FeGFtcGxlTGl2ZSBkb1xuICB1c2UgU2VydmVyV2ViLCA6bGl2ZV92aWV3XG5cbiAgZGVmIHJlbmRlcihhc3NpZ25zKSBkb1xuICAgIH5IXCJcIlwiXG4gICAgPHAgY2xhc3M9XCJ0ZXh0LXJlZFwiPk5vdCBSZWQgVGV4dDwvcD5cbiAgICBcIlwiXCJcbiAgZW5kXG5lbmQiLCJwYXRoIjoiLyJ9","chunks":[[0,85],[87,157],[246,59],[307,51]],"kind":"Elixir.Server.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require Server.Livebook
+import Server.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule ServerWeb.ExampleLive do
+  use ServerWeb, :live_view
+
+  def render(assigns) do
+    ~H"""
+    <p class="text-red">Not Red Text</p>
+    """
+  end
+end
+|> Server.SmartCells.LiveViewNative.register("/", ":index")
+
+import Server.Livebook, only: []
+import Kernel
+:ok
+```
+
+## Bindings
+
+Event bindings are functional.
+
+<!-- livebook:{"attrs":"eyJhY3Rpb24iOiI6aW5kZXgiLCJjb2RlIjoiZGVmbW9kdWxlIFNlcnZlcldlYi5FeGFtcGxlTGl2ZSBkb1xuICB1c2UgU2VydmVyV2ViLCA6bGl2ZV92aWV3XG5cbiAgQGltcGwgdHJ1ZVxuICBkZWYgcmVuZGVyKCV7Zm9ybWF0OiA6c3dpZnR1aX0gPSBhc3NpZ25zKSBkb1xuICAgIH5TV0lGVFVJXCJcIlwiXG4gICAgPEJ1dHRvbiBwaHgtY2xpY2s9XCJwaW5nXCI+SGVsbG8gZnJvbSBMaXZlVmlldyBOYXRpdmUhPC9CdXR0b24+XG4gICAgXCJcIlwiXG4gIGVuZFxuXG4gIGRlZiByZW5kZXIoYXNzaWducykgZG9cbiAgICB+SFwiXCJcIlxuICAgIDxidXR0b24gcGh4LWNsaWNrPVwicGluZ1wiPkhlbGxvIGZyb20gTGl2ZVZpZXchPC9idXR0b24+XG4gICAgXCJcIlwiXG4gIGVuZFxuXG4gIEBpbXBsIHRydWVcbiAgZGVmIGhhbmRsZV9ldmVudChcInBpbmdcIiwgX3BhcmFtcywgc29ja2V0KSBkb1xuICAgIElPLmluc3BlY3QoXCJQT05HXCIpXG4gICAgezpub3JlcGx5LCBzb2NrZXR9XG4gIGVuZFxuZW5kIiwicGF0aCI6Ii8ifQ","chunks":[[0,85],[87,445],[534,59],[595,51]],"kind":"Elixir.Server.SmartCells.LiveViewNative","livebook_object":"smart_cell"} -->
+
+```elixir
+require Server.Livebook
+import Server.Livebook
+import Kernel, except: [defmodule: 2]
+
+defmodule ServerWeb.ExampleLive do
+  use ServerWeb, :live_view
+
+  @impl true
+  def render(%{format: :swiftui} = assigns) do
+    ~SWIFTUI"""
+    <Button phx-click="ping">Hello from LiveView Native!</Button>
+    """
+  end
+
+  def render(assigns) do
+    ~H"""
+    <button phx-click="ping">Hello from LiveView!</button>
+    """
+  end
+
+  @impl true
+  def handle_event("ping", _params, socket) do
+    IO.inspect("PONG")
+    {:noreply, socket}
+  end
+end
+|> Server.SmartCells.LiveViewNative.register("/", ":index")
+
+import Server.Livebook, only: []
+import Kernel
+:ok
+```
